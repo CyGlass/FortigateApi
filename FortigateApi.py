@@ -1258,7 +1258,7 @@ class Fortigate:
 	req = self.ApiGet('monitor/firewall/policy')
 	return req.text
 
-    def AddFwPolicy(self, srcintf='any', dstintf='any', srcaddr='all', dstaddr='all', service='ALL', action='accept', schedule='always', nat='disable', poolname='[]', ippool='disable', status='enable', comments='', traffic_shaper='', traffic_shaper_reverse=''):
+    def AddFwPolicy(self, name, srcintf='any', dstintf='any', srcaddr='all', dstaddr='all', service='ALL', action='accept', schedule='always', nat='disable', poolname='[]', ippool='disable', status='enable', comments='', traffic_shaper='', traffic_shaper_reverse=''):
         """
         Create a fw policy.
 
@@ -1312,6 +1312,7 @@ class Fortigate:
                              'name': dstaddr
                             } 
                     ],
+                    'name' : name,
                     'action': action,
                     'schedule': schedule,
                     'nat': nat,
