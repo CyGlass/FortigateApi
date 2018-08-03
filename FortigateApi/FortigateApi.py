@@ -1086,7 +1086,7 @@ class Fortigate:
         req = self.ApiGet('cmdb/router/static/' + id)
         return req.text
 
-    def AddRouterStatic(self, dst, device, gateway, comment=''):
+    def AddRouterStatic(self, dst, device, comment=''):
         """
         Create a static route on the firewall.
 
@@ -1103,15 +1103,15 @@ class Fortigate:
         """   
         dst = str(dst)
         device = str(device)
-        gateway = str(gateway)
         payload = {'json':
                     {
-                    'dst':  dst,
+                    'dstaddr':  dst,
                     'device': device,
-                    'gateway': gateway,
                     'comment': comment
                     }     
                 }
+        
+        print payload
         return self.ApiAdd('cmdb/router/static/', payload)
 
     def AddRouterStaticIdempotent(self, dst, device, gateway, comment=''):
@@ -2357,7 +2357,7 @@ class Fortigate:
         req_phase2 = self.ApiGet('cmdb/vpn.ipsec/phase2-interface/' + name)
         return req_phase2.text 
 
-    def AddVPNipsecPhase1(self, name, interface, remote_gw, nattraversal, dpd, psk, ike_version, mode, proposal, dhgrp, keylife=28800, localid=''):
+    def AddVPNipsecPhase1(self, name, interface, remote_gw, psk , comments = ""):
         """
         Create vpn ipsec tunnel phase1.
 
@@ -2380,27 +2380,49 @@ class Fortigate:
         Returns
         -------
         Http status code: 200 if ok, 4xx if an error occurs
+        
         """
-        payload = {'json':
-                {
-            'name': name,
-            'type': 'static',
-            'interface': interface,
-            'ip-version': 4,
-            'ike-version': int(ike_version), 
-            'local-gw': '0.0.0.0', 
-            'nattraversal': nattraversal,
-            'keylife': int(keylife),
-            'authurl': 'psk',
-            'mode': mode, 
-            'proposal': proposal,
-            'localid': localid,
-            'dpd': dpd, 
-            'dhgrp': dhgrp, 
-            'remote-gw': remote_gw,
-            'psksecret': psk
-                }     
+        
+
+        #payload = {'json':
+        #        {
+        #    'name': name,
+        #    'type': 'static',
+        #    'interface': interface,
+        #    'ip-version': "4",
+        #    'ike-version': ike_version, 
+        #    'local-gw': '0.0.0.0', 
+        #    'nattraversal': nattraversal,
+        #    'keylife': int(keylife),
+        #    'authmethod': 'psk',
+        #    'mode': mode, 
+        #    'proposal': proposal,
+        #    'localid': localid,
+        #    'localid-type':'auto',
+        #    'dpd': dpd, 
+        #    'dhgrp': dhgrp, 
+        #    'remote-gw': remote_gw,
+        #    'psksecret': psk,
+        #    'wizard-type': 'static-fortigate',
+        #    'vni':0
+        #        }     
+        #    }
+        
+        payload = {'json': {
+                'name': name,
+                'peertype' : 'any',
+                'interface' : interface,
+                'psksecret' : psk,
+                'remote-gw' : remote_gw,
+                'wizard-type': 'static-fortigate',
+                'comments' : comments
             }
+                   
+                   
+        }
+        
+        print payload
+        
         return self.ApiAdd('cmdb/vpn.ipsec/phase1-interface/', payload)
 
     def AddVPNipsecPhase1Idempotent(self, name, interface, remote_gw, nattraversal, dpd, psk, ike_version, mode, proposal, dhgrp, keylife=28800, localid=''):
@@ -2435,7 +2457,7 @@ class Fortigate:
             #object already Exists
             return 200
 
-    def AddVPNipsecPhase2(self, name, phase1name, local_addr_type, local_subnet, remote_addr_type, remote_subnet, proposal, pfs, dhgrp, replay, keepalive, keylife_type, keylifeseconds):
+    def AddVPNipsecPhase2(self, name, phase1name, local_addr_type, local_subnet, remote_addr_type, remote_subnet, comments):
         """
         Create vpn ipsec tunnel phase2.
 
@@ -2444,16 +2466,10 @@ class Fortigate:
         name:  name of the phase2 (type string)
         phase1name: the name of the phase1 that already exist (type string)
         local_addr_type: local address type, choice subnet/IP range/IP address (type string)
-        local_subnet: local address (type string)
+        local_name: local address (type string)
         remote_addr_type: local address type, choice subnet/IP range/IP address (type string)
-        remote_subnet: (type string)
-        proposal: choice: aes256-sha1... (type string)
-        pfs: choice: enable/disable (type string)
-        dhgrp: choice: 1/2/5/14/15... (type string)
-        replay: enable/disable (type string)
-        keepalive: enable/disable (type string)
-        keylife_type: key lifetime, choice: seconds/kilobytes/both (type string)
-        keylifeseconds: (type int)
+        remote_name: (type string)
+
 
         Returns
         -------
@@ -2464,18 +2480,14 @@ class Fortigate:
             'name': name,
             'phase1name': phase1name,
             'src-addr-type': local_addr_type,
-            'src-subnet': local_subnet,
+            'src-name': local_subnet,
             'dst-addr-type': remote_addr_type, 
-            'dst-subnet': remote_subnet, 
-            'proposal': proposal, 
-            'pfs': pfs, 
-            'dhgrp': dhgrp,
-            'replay': replay,
-            'keepalive': keepalive,
-            'keylife-type': keylife_type,
-            'keylifeseconds': int(keylifeseconds)
+            'dst-name': remote_subnet, 
+            'comments' : comments
                 }     
             }
+        
+        print payload
         return self.ApiAdd('cmdb/vpn.ipsec/phase2-interface/', payload)
 
     def AddVPNipsecPhase2Idempotent(self, name, phase1name, local_addr_type, local_subnet, remote_addr_type, remote_subnet, proposal, pfs, dhgrp, replay, keepalive, keylife_type, keylifeseconds):

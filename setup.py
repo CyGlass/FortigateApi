@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
   name = 'FortigateApi',
-  packages=find_packages(),
+  packages=["FortigateApi"],
   version = '0.1',
   description = 'Access Fortigate REST API in python',
   author = 'David Chayla',
