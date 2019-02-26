@@ -482,6 +482,29 @@ class Fortigate:
                    result.append(data['results'][y])
         return json.dumps(result, indent=4)
     
+    def SetInterfaceIp(self, name, ip_mask):
+        """
+        Modify an interface's ip.
+
+        Parameters
+        ----------       
+        name: the name of the interface (type string)
+        ip_mask: the ip and mask (for ex: 1.1.1.1 255.255.255.255 or 1.1.1.1/32)(type string)
+        
+        Returns
+        -------
+        Http status code: 200 if ok, 4xx if an error occurs
+        """
+        name = str(name)
+        ip_mask = str(ip_mask)
+
+        payload = { 'json':
+                    {
+                    'ip': ip_mask
+                    }   
+                }
+        return self.ApiSet('cmdb/system/interface/' + name + '/', payload)
+
     def AddLoopbackInterface(self, name, ip_mask, vdom, allowaccess=''):
         """
         Create a loopback interface on the vdom.
@@ -812,6 +835,8 @@ class Fortigate:
                     'comment': comment
                     }     
                 }
+        
+        #print payload
         return self.ApiAdd('cmdb/firewall/address/', payload)
 
     def AddFwAddressRange(self, name, start_ip, end_ip, associated_interface='', comment=''):
@@ -844,6 +869,9 @@ class Fortigate:
                     'comment': comment
                     }     
                 }
+        
+        #print payload
+
         return self.ApiAdd('cmdb/firewall/address/', payload)
 
 
@@ -1086,7 +1114,7 @@ class Fortigate:
         req = self.ApiGet('cmdb/router/static/' + id)
         return req.text
 
-    def AddRouterStatic(self, dst, device, comment=''):
+    def AddRouterStatic(self, dst, device, distance = "10", blackhole = "disable", comment = ''):
         """
         Create a static route on the firewall.
 
@@ -1105,13 +1133,15 @@ class Fortigate:
         device = str(device)
         payload = {'json':
                     {
-                    'dstaddr':  dst,
+                    'dst':  dst,
                     'device': device,
+                    "distance": distance,
+                    "blackhole": blackhole,
                     'comment': comment
                     }     
                 }
         
-        print payload
+        #print payload
         return self.ApiAdd('cmdb/router/static/', payload)
 
     def AddRouterStaticIdempotent(self, dst, device, gateway, comment=''):
@@ -1334,6 +1364,9 @@ class Fortigate:
                     'comments': comments
                     }     
                 }
+        
+        #print payload
+
         return self.ApiAdd('cmdb/firewall/policy/', payload)
 
     def AddFwPolicyIdempotent(self, srcintf='any', dstintf='any', srcaddr='all', dstaddr='all', service='ALL', action='accept', schedule='always', nat='disable', poolname='[]', ippool='disable', status='enable', comments='', traffic_shaper='', traffic_shaper_reverse=''):
@@ -2085,6 +2118,9 @@ class Fortigate:
             'comment': comment
             }     
         }
+        
+        #print payload
+
         return self.ApiAdd('cmdb/firewall/vip/', payload)
     
     def AddFwVIPidempotent(self, name, extip, extintf, mappedip, portforward='disable', extport='0-65535', mappedport='0-65535', comment=''):
@@ -2252,6 +2288,9 @@ class Fortigate:
             'comments': comment
             }     
         }
+
+        #print payload
+
         return self.ApiAdd('cmdb/firewall/ippool/', payload)
 
     def AddFwIPpoolIdempotent(self, name, startip, endip, type_pool='overload', internal_startip='0.0.0.0', internal_endip='0.0.0.0', arp_reply='enable',block_size='128', num_blocks_per_user='8', comment=''):
@@ -2414,14 +2453,15 @@ class Fortigate:
                 'interface' : interface,
                 'psksecret' : psk,
                 'remote-gw' : remote_gw,
-                'wizard-type': 'static-fortigate',
+                "wizard-type":"custom",
+                #'wizard-type': 'static-fortigate',
                 'comments' : comments
             }
                    
                    
         }
         
-        print payload
+        #print payload
         
         return self.ApiAdd('cmdb/vpn.ipsec/phase1-interface/', payload)
 
@@ -2466,9 +2506,9 @@ class Fortigate:
         name:  name of the phase2 (type string)
         phase1name: the name of the phase1 that already exist (type string)
         local_addr_type: local address type, choice subnet/IP range/IP address (type string)
-        local_name: local address (type string)
+        local_subnet: local address (type string)
         remote_addr_type: local address type, choice subnet/IP range/IP address (type string)
-        remote_name: (type string)
+        remote_subnet: (type string)
 
 
         Returns
@@ -2479,15 +2519,21 @@ class Fortigate:
                 {
             'name': name,
             'phase1name': phase1name,
+            #"src-start-ip":"10.2.2.0",
+            #"src-end-ip":"255.255.255.0",
+            "src-subnet": local_subnet,
+            #"dst-start-ip":"10.1.1.0",
+            #"dst-end-ip":"255.255.255.0",
+            "dst-subnet": remote_subnet,
             'src-addr-type': local_addr_type,
-            'src-name': local_subnet,
+            #'src-name': local_subnet,
             'dst-addr-type': remote_addr_type, 
-            'dst-name': remote_subnet, 
+            #'dst-name': remote_subnet, 
             'comments' : comments
                 }     
             }
         
-        print payload
+        #print payload
         return self.ApiAdd('cmdb/vpn.ipsec/phase2-interface/', payload)
 
     def AddVPNipsecPhase2Idempotent(self, name, phase1name, local_addr_type, local_subnet, remote_addr_type, remote_subnet, proposal, pfs, dhgrp, replay, keepalive, keylife_type, keylifeseconds):
